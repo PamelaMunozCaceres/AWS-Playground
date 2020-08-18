@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Testing IoT services
+
+Parameters:
+
+  NameParameter:
+    Default: MyFabulousNewThing
+    Type: String
+
+Resources:
+
+  MyThing:
+    Type: AWS::IoT::Thing
+    Properties:
+      ThingName:
+        Ref: NameParameter
+
+  MyPolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyName: SuperPolicy
+      PolicyDocument: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "*",
+              "Resource": "*"
+            }
+          ]
+        }
