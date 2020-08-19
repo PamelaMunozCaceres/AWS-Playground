@@ -141,3 +141,7 @@ dmypy.json
 deploy.sh
 samconfig.toml
 packaged.yaml
+*.pem
+*.key
+certificate.sh
+.aws-sam/
