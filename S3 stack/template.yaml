@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Example Bucket Templates
+
+Parameters:
+
+  BucketNameOne:
+    Type: String
+    Default: myfirstbucketbypamela
+
+Resources:
+
+  BucketOne:
+    Type: AWS::S3::Bucket
+    # If we delete the stack, the bucket is not deleted
+    DeletionPolicy: Retain    
+    Properties:
+      BucketName: !Ref BucketNameOne
+      # Our Bucket is private
+      AccessControl: Private
+      # Rules to delete or move objects
+      LifecycleConfiguration:
+        Rules:
+          - Id: MyFirstDeleteConfiguration
+            Prefix: "folderone/*"
+            Status: "Enabled"
+            ExpirationInDays: "90"
+
