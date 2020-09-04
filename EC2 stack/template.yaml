@@ -14,3 +14,5 @@ Resources:
       Tags:
         - Key: Name
           Value: "Test EC2 template"
+        - Key: JoinTest
+          Value: !Join ["", [EC2, with, join]]
