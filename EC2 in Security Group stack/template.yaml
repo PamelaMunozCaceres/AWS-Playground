@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Testing EC2 services in a security group
+
+
+Resources:
+
+  # The security group must exist before the instance
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-467ca739
+      # Security gropus for this instance
+      SecurityGroups:
+        - !Ref MySecurityGroup
+      Tags:
+        - Key: Name
+          Value: "Test EC2 template"
+
+   MySecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Enable SSH access using port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 0.0.0.0/0 # For all IPs
