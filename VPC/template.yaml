@@ -15,6 +15,17 @@ Resources:
         - Key: Name
           Value: "VPC-Instance1"
 
+  Ec2Instance2:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-467ca739
+      Tags:
+        - Key: Name
+          Value: "VPC-Instance2"
+
+  # When we create a VPC it automatically creates a 
+  # main route table
   myVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -26,22 +37,90 @@ Resources:
       - Key: Name
         Value: "Test VPC template"
 
-  Ec2Instance2:
-    Type: "AWS::EC2::Instance"
+  # We create our public route Table
+  myRouteTablepublic:
+    Type: AWS::EC2::RouteTable
     Properties:
-      InstanceType: t2.micro
-      ImageId: ami-467ca739
+      VpcId:  
+        Ref: myVPC
       Tags:
-        - Key: Name
-          Value: "VPC-Instance2"
+      - Key: Name
+        Value: "MyRouteTablePublic"
 
+  # We create our Network ACL
+  myNetworkAcl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+        VpcId:
+          Ref: myVPC
+        Tags:
+        - Key: Name
+          Value: "MynetworkACL"
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: "Testing security groups"
+        VpcId:
+          Ref: myVPC
+        # SecurityGroupIngress:
+        # - IpProtocol: tcp
+        #   FromPort: 80
+        #   ToPort: 80
+        #   CidrIp: 0.0.0.0/0
+        # SecurityGroupEgress:
+        # - IpProtocol: tcp
+        #   FromPort: 80
+        #   ToPort: 80
+        #   CidrIp: 0.0.0.0/0
+          
+  # A subnet can only be in one availability zone
   mySubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: myVPC
       CidrBlock: 10.0.1.0/24
+      # The instances in this subnet will be public accessible
+      MapPublicIpOnLaunch: true
       AvailabilityZone: "us-east-1a"
       Tags:
       - Key: Name
         Value: "VPC-Subnet-10.0.1.0 us-east-1a"
+
+  mySubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: "us-east-1b"
+      Tags:
+      - Key: Name
+        Value: "VPC-Subnet-10.0.2.0 us-east-1b"
+
+  # An internetGateway is the way to get into the VPC
+  myInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: MyInternetGateway
+
+  # To attach the internet Gateway to our VPC
+  # You can only have one internet gateway attach to a VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: myVPC
+      InternetGatewayId:
+        Ref: myInternetGateway
+
+  mySubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: mySubnet
+      RouteTableId:
+        Ref: myRouteTablepublic
