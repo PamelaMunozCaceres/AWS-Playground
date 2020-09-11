@@ -9,6 +9,9 @@ Resources:
   Ec2Instance:
     Type: "AWS::EC2::Instance"
     Properties:
+      # in what subnet will be our instance
+      SubnetId:
+        Ref: mySubnet
       InstanceType: t2.micro
       ImageId: ami-467ca739
       Tags:
@@ -18,6 +21,9 @@ Resources:
   Ec2Instance2:
     Type: "AWS::EC2::Instance"
     Properties:
+      # in what subnet will be our instance
+      SubnetId:
+        Ref: mySubnet2
       InstanceType: t2.micro
       ImageId: ami-467ca739
       Tags:
@@ -38,6 +44,7 @@ Resources:
         Value: "Test VPC template"
 
   # We create our public route Table
+  # because by we want to mantain our first route table private
   myRouteTablepublic:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -117,6 +124,7 @@ Resources:
       InternetGatewayId:
         Ref: myInternetGateway
 
+  # This is to asociate a subnet with a route table
   mySubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -124,3 +132,29 @@ Resources:
         Ref: mySubnet
       RouteTableId:
         Ref: myRouteTablepublic
+
+  # Create a route out to the internet
+  # for ipv4
+  # Any instance asociate will be public for IPV4
+  myRoute:
+    Type: AWS::EC2::Route
+    DependsOn: myInternetGateway
+    Properties:
+       RouteTableId:
+         Ref: myRouteTablepublic
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: myInternetGateway
+
+  # Create a route out to the internet
+  # for ipv6
+  # Any instance asociate will be public for IPV6
+  # myRoute:
+  #   Type: AWS::EC2::Route
+  #   DependsOn: myInternetGateway
+  #   Properties:
+  #      RouteTableId:
+  #        Ref: myRouteTablepublic
+  #      DestinationCidrBlock: ":::/0"
+  #      GatewayId:
+  #        Ref: myInternetGateway
