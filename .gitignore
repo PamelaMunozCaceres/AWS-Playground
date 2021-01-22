@@ -139,6 +139,7 @@ dmypy.json
 
 # Deploy
 deploy.sh
+deploy.cmd
 samconfig.toml
 packaged.yaml
 *.pem
