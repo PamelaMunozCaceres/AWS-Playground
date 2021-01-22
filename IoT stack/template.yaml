@@ -32,3 +32,17 @@ Resources:
             }
           ]
         }
+
+  TimestreamDB:
+    Type: AWS::Timestream::Database
+    Properties: 
+      DatabaseName: MyfirstTimestreamDB
+
+  TimestreamDBTable:      
+    Type: AWS::Timestream::Table
+    Properties: 
+      DatabaseName: !Ref TimestreamDB
+      RetentionProperties: 
+        MemoryStoreRetentionPeriodInHours: "24"
+        MagneticStoreRetentionPeriodInDays: "7"
+      TableName: Table1
