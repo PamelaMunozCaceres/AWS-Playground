@@ -149,12 +149,12 @@ Resources:
   # Create a route out to the internet
   # for ipv6
   # Any instance asociate will be public for IPV6
-  # myRoute:
-  #   Type: AWS::EC2::Route
-  #   DependsOn: myInternetGateway
-  #   Properties:
-  #      RouteTableId:
-  #        Ref: myRouteTablepublic
-  #      DestinationCidrBlock: ":::/0"
-  #      GatewayId:
-  #        Ref: myInternetGateway
+  myRoute:
+    Type: AWS::EC2::Route
+    DependsOn: myInternetGateway
+    Properties:
+       RouteTableId:
+         Ref: myRouteTablepublic
+       DestinationIpv6CidrBlock: "::/0"
+       GatewayId:
+         Ref: myInternetGateway

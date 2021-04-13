@@ -1,0 +1,46 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Lab1 course Building Modern Python Applications on AWS
+
+Parameters:
+
+  BucketNameOne:
+    Type: String
+    Default: pm-2021-04-12-s3site
+
+Resources:
+
+  BucketOne:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketNameOne
+
+  BucketOnePolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref BucketOne
+      PolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+        - Effect: Allow
+          Principal: "*"
+          Action: s3:GetObject
+          Resource:
+          - arn:aws:s3:::pm-2021-04-12-s3site/*
+          - arn:aws:s3:::pm-2021-04-12-s3site
+          Condition:
+            IpAddress:
+              # Replace this (only accesible from this IP)
+              aws:SourceIp:
+              - MYIP
+        - Sid: DenyOneObjectIfRequestNotSigned
+          Effect: Deny
+          Principal: "*"
+          Action: s3:GetObject
+          Resource: arn:aws:s3:::pm-2021-04-12-s3site/report.html
+          Condition:
+            StringNotEquals:
+              s3:authtype: REST-QUERY-STRING
+

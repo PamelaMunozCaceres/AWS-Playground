@@ -146,3 +146,10 @@ packaged.yaml
 *.key
 certificate.sh
 .aws-sam/
+
+# Compressed files
+*.rar
+*.zip
+
+# lab material
+lab/
