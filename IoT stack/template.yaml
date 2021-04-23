@@ -5,9 +5,14 @@ Description: >
 
 Parameters:
 
-  NameParameter:
+  NameParameterThing:
     Default: MyFabulousNewThing
     Type: String
+
+  NameParameterTopic:
+    Default: MyFabulousNewTopic
+    Type: String
+
 
 Resources:
 
@@ -15,23 +20,109 @@ Resources:
     Type: AWS::IoT::Thing
     Properties:
       ThingName:
-        Ref: NameParameter
+        Ref: NameParameterThing
 
   MyPolicy:
     Type: AWS::IoT::Policy
     Properties:
-      PolicyName: SuperPolicy
-      PolicyDocument: !Sub |
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": "*",
-              "Resource": "*"
-            }
-          ]
-        }
+      PolicyName: SuperPolicyIoT
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: iot:Connect
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/MyFabulousNewThing'
+          - Effect: Allow
+            Action: iot:Subscribe
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/MyFabulousNewTopic/sub'
+          - Effect: Allow
+            Action: iot:Receive
+            Resource: !Sub  'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/MyFabulousNewTopic/sub'
+          - Effect: Allow
+            Action: iot:Publish
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/MyFabulousNewTopic/pub'
+
+  LambdaRole: 
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ErrorLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Principal:
+              Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: WriteCloudWatchLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+
+  IotRuleRole: 
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: IotRuleRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Principal:
+              Service: iot.amazonaws.com
+      Policies:
+        - PolicyName: WriteToTimestream
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                - timestream:WriteRecords
+                Resource: !Sub arn:aws:timestream:${AWS::Region}:${AWS::AccountId}:database/MyfirstTimestreamDB/table/Table1
+              - Effect: Allow
+                Action:
+                  - timestream:DescribeEndpoints
+                Resource: "*"
+
+  ErrorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: "Send an alarm when something fail"
+      FunctionName: ErrorLambda
+      CodeUri: error_lambda/
+      Handler: handler.handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaRole.Arn
+
+  MyTopicRule:
+    Type: AWS::IoT::TopicRule
+    Properties: 
+      RuleName: SuperRuleIOT
+      TopicRulePayload: 
+        Actions: 
+          - Timestream:
+              DatabaseName: !Ref TimestreamDB
+              Dimensions: 
+                - Name: client
+                  Value: ${client}
+                - Name: car
+                  Value: ${car}
+                - Name: wheel
+                  Value: ${wheel}                  
+              RoleArn: !GetAtt IotRuleRole.Arn
+              TableName: Table1
+        Description: 'Receive data from iot'
+        ErrorAction: 
+          Lambda:
+            FunctionArn: !GetAtt ErrorLambda.Arn
+        RuleDisabled: false
+        Sql: !Sub SELECT * FROM '${NameParameterTopic}'
 
   TimestreamDB:
     Type: AWS::Timestream::Database
@@ -46,3 +137,4 @@ Resources:
         MemoryStoreRetentionPeriodInHours: "24"
         MagneticStoreRetentionPeriodInDays: "7"
       TableName: Table1
+
