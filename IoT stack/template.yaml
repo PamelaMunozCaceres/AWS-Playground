@@ -131,7 +131,7 @@ Resources:
             FunctionArn: !GetAtt ErrorLambda.Arn
         RuleDisabled: false
         AwsIotSqlVersion: '2016-03-23'
-        Sql: !Sub SELECT preassure, temp FROM '${NameParameterTopic}/#'
+        Sql: !Sub SELECT pressure, temp FROM '${NameParameterTopic}/#'
 
   TimestreamDB:
     Type: AWS::Timestream::Database

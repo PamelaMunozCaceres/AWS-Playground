@@ -9,7 +9,7 @@ TOPIC_BASE = 'MyFabulousNewTopic/sensor'
 C_IOT_DATA = boto3.client('iot-data', region_name='us-east-1')
 
 # Sample data
-SENSORS = {"wheel": 1, "temp": 30, "preassure": 500, "client": 1, "car": 2
+SENSORS = {"wheel": 1, "temp": 30, "pressure": 500, "client": 1, "car": 2
            }
 
 # The number to identify the sensor
