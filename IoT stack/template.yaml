@@ -10,7 +10,15 @@ Parameters:
     Type: String
 
   NameParameterTopic:
-    Default: MyFabulousNewTopic
+    Default: MyFabulousNewTopic/sensor
+    Type: String
+
+  NameTimeStreamTable:
+    Default: Table1
+    Type: String
+
+  NameTimeStreamDB:
+    Default: MyfirstTimestreamDB
     Type: String
 
 
@@ -25,22 +33,22 @@ Resources:
   MyPolicy:
     Type: AWS::IoT::Policy
     Properties:
-      PolicyName: SuperPolicyIoT
+      PolicyName: PolicyIoT
       PolicyDocument: 
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action: iot:Connect
-            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/MyFabulousNewThing'
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/{NameParameterThing}'
           - Effect: Allow
             Action: iot:Subscribe
-            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/MyFabulousNewTopic/sub'
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/{NameParameterTopic}/sub'
           - Effect: Allow
             Action: iot:Receive
-            Resource: !Sub  'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/MyFabulousNewTopic/sub'
+            Resource: !Sub  'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/{NameParameterTopic}/sub'
           - Effect: Allow
             Action: iot:Publish
-            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/MyFabulousNewTopic/pub'
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/{NameParameterTopic}/pub'
 
   LambdaRole: 
     Type: 'AWS::IAM::Role'
@@ -84,7 +92,7 @@ Resources:
               - Effect: Allow
                 Action:
                 - timestream:WriteRecords
-                Resource: !Sub arn:aws:timestream:${AWS::Region}:${AWS::AccountId}:database/MyfirstTimestreamDB/table/Table1
+                Resource: !Sub arn:aws:timestream:${AWS::Region}:${AWS::AccountId}:database/{NameTimeStreamDB}/table/{NameTimeStreamTable}
               - Effect: Allow
                 Action:
                   - timestream:DescribeEndpoints
@@ -116,18 +124,19 @@ Resources:
                 - Name: wheel
                   Value: ${wheel}                  
               RoleArn: !GetAtt IotRuleRole.Arn
-              TableName: Table1
+              TableName: !Ref NameTimeStreamTable
         Description: 'Receive data from iot'
         ErrorAction: 
           Lambda:
             FunctionArn: !GetAtt ErrorLambda.Arn
         RuleDisabled: false
-        Sql: !Sub SELECT * FROM '${NameParameterTopic}'
+        AwsIotSqlVersion: '2016-03-23'
+        Sql: !Sub SELECT (SELECT presion, temp, wheel, car, client FROM data) AS  presion, temp, wheel, car, client FROM '${NameParameterTopic}/#'
 
   TimestreamDB:
     Type: AWS::Timestream::Database
     Properties: 
-      DatabaseName: MyfirstTimestreamDB
+      DatabaseName: !Ref NameTimeStreamDB
 
   TimestreamDBTable:      
     Type: AWS::Timestream::Table
@@ -136,5 +145,5 @@ Resources:
       RetentionProperties: 
         MemoryStoreRetentionPeriodInHours: "24"
         MagneticStoreRetentionPeriodInDays: "7"
-      TableName: Table1
+      TableName: !Ref NameTimeStreamTable
 
