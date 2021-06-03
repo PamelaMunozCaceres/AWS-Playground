@@ -1,13 +1,13 @@
-import { Bucket, BucketEncryption } from '@aws-cdk/aws-s3';
-import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda-nodejs'
-import { RemovalPolicy } from '@aws-cdk/core';
-import { Runtime } from '@aws-cdk/aws-lambda';
+
+import { App, CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { Runtime } from 'aws-cdk-lib/lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/lib/aws-lambda-nodejs';
+import { Bucket, BucketEncryption } from 'aws-cdk-lib/lib/aws-s3';
 import * as path from 'path';
 
 // Stack
-export class SimpleAppCdkStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class SimpleAppCdkStack extends Stack {
+  constructor(scope: App, id: string, props?: StackProps) {
     super(scope, id, props);
     
     // Bucket
@@ -18,14 +18,14 @@ export class SimpleAppCdkStack extends cdk.Stack {
     });
 
     // Lambda
-    const myLambda = new lambda.NodejsFunction(this, 'MyFirstLambda', {
+    const myLambda = new NodejsFunction(this, 'MyFirstLambda', {
       runtime: Runtime.NODEJS_12_X,
       entry: path.join(__dirname, '..', 'api', 'get_photos', 'index.ts'),
       handler: 'getPhotos'
     });
 
     // Export bucket name
-    new cdk.CfnOutput(this, 'MyFirstBucketNameExport', {
+    new CfnOutput(this, 'MyFirstBucketNameExport', {
       value: myBucket.bucketName,
       exportName: 'MyFirstBucketName'
     });
